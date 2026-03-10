@@ -6,10 +6,7 @@ use RuntimeException;
 
 class GatewayRegistry
 {
-    /**
-     * Map gateway name → adapter class.
-     * To add a new gateway: implement GatewayInterface and register here.
-     */
+    
     private static array $map = [
         'Gateway1' => Gateway1::class,
         'Gateway2' => Gateway2::class,
