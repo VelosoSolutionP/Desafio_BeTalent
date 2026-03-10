@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: payment_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: payment_api
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: payment_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: payment_api
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      GATEWAY1_URL: http://gateways:3001
+      GATEWAY2_URL: http://gateways:3002
+    depends_on:
+      mysql:
+        condition: service_healthy
+      gateways:
+        condition: service_started
+    volumes:
+      - .:/var/www/html
+
+  gateways:
+    image: matheusprotzen/gateways-mock
+    container_name: payment_gateways
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+      - "3002:3002"
+
+volumes:
+  mysql_data:
